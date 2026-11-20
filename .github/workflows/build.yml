@@ -14,14 +14,4 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with: { gradle-version: "8.7" }
       - name: Accept SDK licenses
-        run: yes | sdkmanager --licenses || true
-      - name: Disable R8 for now
-        working-directory: PortYouStudio
-        run: |
-          sed -i 's/isMinifyEnabled = true/isMinifyEnabled = false/; s/isShrinkResources = true/isShrinkResources = false/' app/build.gradle.kts
-      - name: Build
-        working-directory: PortYouStudio
-        run: gradle :app:assembleRelease --no-daemon
-      - run: ls -l PortYouStudio/app/build/outputs/apk/release/
-      - uses: actions/upload-artifact@v4
-        with: { name: PortYouStudio-apk, path: PortYouStudio/app/build/outputs/apk/release/*.apk }
+        run: yes | sdkmanager --l
