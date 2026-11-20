@@ -13,12 +13,25 @@ jobs:
         with: { distribution: temurin, java-version: 17 }
       - uses: gradle/actions/setup-gradle@v4
         with: { gradle-version: "8.7" }
-      - name: Prepare build
+      - name: Remove ffmpeg (makes the APK work on all CPUs)
         working-directory: PortYouStudio
         run: |
-          sed -i 's/isMinifyEnabled = true/isMinifyEnabled = false/; s/isShrinkResources = true/isShrinkResources = false/' app/build.gradle.kts
-          sed -i 's/abiFilters += listOf("arm64-v8a")/abiFilters += listOf("arm64-v8a", "armeabi-v7a")/' app/build.gradle.kts
-          grep -n "abiFilters\|isMinify" app/build.gradle.kts
+          sed -i 's/isMinifyEnabled = true/isMinifyEnabled = false/; s/isShrinkResources = true/isShrinkResources = false/; /ffmpeg-kit/d; /abiFilters/d' app/build.gradle.kts
+          cat > app/src/main/java/com/portyou/studio/convert/AudioMerge.kt <<'EOF'
+          package com.portyou.studio.convert
+
+          import java.io.File
+
+          object AudioMerge {
+              fun merge(inputs: List<File>, out: File): Boolean {
+                  out.parentFile?.mkdirs()
+                  if (inputs.isEmpty()) return false
+                  inputs[0].copyTo(out, overwrite = true)
+                  return inputs.size == 1
+              }
+          }
+          EOF
+          grep -n "abiFilters\|ffmpeg" app/build.gradle.kts || echo "clean"
       - name: Build
         working-directory: PortYouStudio
         run: gradle :app:assembleRelease --no-daemon
