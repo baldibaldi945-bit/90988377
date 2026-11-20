@@ -7,13 +7,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Unzip project
+        run: unzip -q PortYouStudio_v1_6.zip && ls
       - uses: actions/setup-java@v5
         with: { distribution: temurin, java-version: 17 }
       - uses: gradle/actions/setup-gradle@v4
-        with: { gradle-version: "8.7" }
+        with:
+          gradle-version: "8.7"
+          build-root-directory: PortYouStudio
       - name: Accept SDK licenses
         run: yes | sdkmanager --licenses || true
-      - run: gradle :app:assembleRelease --no-daemon
-      - run: ls -l app/build/outputs/apk/release/
+      - name: Build
+        working-directory: PortYouStudio
+        run: gradle :app:assembleRelease --no-daemon
       - uses: actions/upload-artifact@v4
-        with: { name: PortYouStudio-apk, path: app/build/outputs/apk/release/*.apk }
+        with: { name: PortYouStudio-apk, path: PortYouStudio/app/build/outputs/apk/release/*.apk }
